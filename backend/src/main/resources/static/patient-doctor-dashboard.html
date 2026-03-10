@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hospital Treatment Dashboard</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f1f5f9;
+padding:30px;
+}
+
+h1{
+text-align:center;
+color:#1e3a8a;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:30px;
+background:white;
+}
+
+th{
+background:#2563eb;
+color:white;
+padding:12px;
+}
+
+td{
+padding:12px;
+text-align:center;
+}
+
+tr:nth-child(even){
+background:#f1f5f9;
+}
+
+.normal{
+color:green;
+font-weight:bold;
+}
+
+.risk{
+color:red;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Hospital Patient Treatment Dashboard</h1>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Patient</th>
+<th>Heart Rate</th>
+<th>Temperature</th>
+<th>SpO2</th>
+<th>Status</th>
+<th>Doctor</th>
+<th>Specialization</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tableData">
+
+</tbody>
+
+</table>
+
+<script>
+
+fetch("http://localhost:8081/patients")
+
+.then(res=>res.json())
+
+.then(data=>{
+
+let rows="";
+
+data.forEach(p=>{
+
+rows += `
+<tr>
+
+<td>${p.name}</td>
+<td>${p.heartRate}</td>
+<td>${p.temperature}</td>
+<td>${p.spo2}</td>
+
+<td class="${p.status==='Normal'?'normal':'risk'}">
+${p.status}
+</td>
+
+<td>${p.doctor ? p.doctor.name : 'Not Assigned'}</td>
+<td>${p.doctor ? p.doctor.specialization : '-'}</td>
+
+</tr>
+`;
+
+});
+
+document.getElementById("tableData").innerHTML=rows;
+
+});
+
+</script>
+
+</body>
+
+</html>
