@@ -78,71 +78,151 @@
     </div>
 </div>
 <script>
-    function triggerEmergencyEffects() {
-    const overlay = document.getElementById("redAlertOverlay");
-    const sound = document.getElementById("alarmSound");
+    const apiBase = "http://localhost:8081";
 
-    overlay.style.display = "block";
-    sound.play().catch(() => {});
-
-    setTimeout(() => {
-        overlay.style.display = "none";
-        sound.pause();
-        sound.currentTime = 0;
-    }, 5000);
-}
-async function loadPatients() {
-    const res = await fetch("http://localhost:8081/patients");
-    const data = await res.json();
-
-    let total = data.length;
-    let risk = data.filter(p => p.status === "Risk").length;
-    let normal = total - risk;
-
-    document.getElementById("total").innerText = total;
-    document.getElementById("risk").innerText = risk;
-    document.getElementById("normal").innerText = normal;
-
-    // 🚨 ALERT SYSTEM
-    if (risk > 0) {
-        showEmergencyAlert(risk);
+    function showError(message) {
+        alert(message);
     }
-}
 
-function showEmergencyAlert(count) {
-    let alertBox = document.createElement("div");
+    function logout() {
+        localStorage.removeItem('loggedIn');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('balance');
+        window.location.href = 'login.html';
+    }
 
-    alertBox.innerHTML = `
-        <div style="
-            position:fixed;
-            top:20px;
-            right:20px;
-            background:red;
-            color:white;
-            padding:20px;
-            border-radius:10px;
-            font-weight:bold;
-            z-index:9999;
-            box-shadow:0 0 20px red;
-        ">
-            🚨 EMERGENCY ALERT 🚨 <br>
-            ${count} Risk Patient(s) detected!
-        </div>
-    `;
+    function triggerEmergencyEffects() {
+        const overlay = document.getElementById("redAlertOverlay");
+        const sound = document.getElementById("alarmSound");
 
-    document.body.appendChild(alertBox);
+        overlay.style.display = "block";
+        sound.play().catch(() => {});
 
-    // remove after 5 sec
-    setTimeout(() => {
-        alertBox.remove();
-    }, 5000);
-}
+        setTimeout(() => {
+            overlay.style.display = "none";
+            sound.pause();
+            sound.currentTime = 0;
+        }, 5000);
+    }
 
-// Auto refresh every 5 sec
-setInterval(loadPatients, 5000);
+    async function addPatient() {
+        const name = document.getElementById('name').value.trim();
+        const heartRate = Number(document.getElementById('heartRate').value);
+        const temperature = Number(document.getElementById('temperature').value);
+        const spo2 = Number(document.getElementById('spo2').value);
 
-// Initial load
-loadPatients();
+        if (!name || !heartRate || !temperature || !spo2) {
+            return showError('Please fill in all patient fields before submitting.');
+        }
+
+        const payload = {
+            name,
+            heartRate,
+            temperature,
+            spo2,
+            doctor: localStorage.getItem('userRole') || 'N/A'
+        };
+
+        try {
+            const res = await fetch(`${apiBase}/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                throw new Error('Unable to save patient');
+            }
+
+            document.getElementById('name').value = '';
+            document.getElementById('heartRate').value = '';
+            document.getElementById('temperature').value = '';
+            document.getElementById('spo2').value = '';
+
+            await loadPatients();
+        } catch (error) {
+            console.error(error);
+            showError('Unable to save patient. Make sure the backend is running and available on port 8081.');
+        }
+    }
+
+    async function loadPatients() {
+        try {
+            const res = await fetch(`${apiBase}/patients`);
+            if (!res.ok) {
+                throw new Error(`Backend returned ${res.status}`);
+            }
+
+            const data = await res.json();
+            const total = data.length;
+            const risk = data.filter(p => p.status === 'Risk').length;
+            const normal = total - risk;
+
+            document.getElementById('totalPatients').innerText = total;
+            document.getElementById('riskCount').innerText = risk;
+            document.getElementById('normalCount').innerText = normal;
+
+            const tableBody = document.getElementById('patientTableBody');
+            tableBody.innerHTML = '';
+            data.forEach(p => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${p.id ?? ''}</td>
+                    <td>${p.name ?? ''}</td>
+                    <td>${p.heartRate ?? ''}</td>
+                    <td>${p.temperature ?? ''}</td>
+                    <td>${p.spo2 ?? ''}</td>
+                    <td>${p.status ?? ''}</td>
+                    <td>${p.doctor ?? 'N/A'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            if (risk > 0) {
+                showEmergencyAlert(risk);
+            }
+        } catch (error) {
+            console.error(error);
+            showError('Unable to load patients from backend. Please start the backend server on port 8081.');
+        }
+    }
+
+    function showEmergencyAlert(count) {
+        const alertBox = document.createElement('div');
+        alertBox.innerHTML = `
+            <div style="
+                position:fixed;
+                top:20px;
+                right:20px;
+                background:red;
+                color:white;
+                padding:20px;
+                border-radius:10px;
+                font-weight:bold;
+                z-index:9999;
+                box-shadow:0 0 20px red;
+            ">
+                🚨 EMERGENCY ALERT 🚨 <br>
+                ${count} Risk Patient(s) detected!
+            </div>
+        `;
+
+        document.body.appendChild(alertBox);
+        setTimeout(() => alertBox.remove(), 5000);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('loggedIn') !== 'true') {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        document.getElementById('loggedRole').innerText = 'Role: ' + (localStorage.getItem('userRole') || 'Guest');
+        document.getElementById('balance').innerText = 'Balance: ₹' + (localStorage.getItem('balance') || '0');
+
+        loadPatients();
+        setInterval(loadPatients, 5000);
+    });
 </script>
 </body>
 </html>
