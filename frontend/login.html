@@ -1,40 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Login</title>
-    <style>
-        * { box-sizing:border-box; }
-        body { margin:0;font-family:Arial,sans-serif; background-image:url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3'); background-size:cover; background-position:center; background-repeat:no-repeat; min-height:100vh; }
-        .overlay{min-height:100vh;background:rgba(0,0,0,0.45);display:flex;justify-content:center;align-items:center;padding:20px;}
-        .login-box{width:100%;max-width:420px;background:rgba(255,255,255,0.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:35px 30px;box-shadow:0 8px 25px rgba(0,0,0,0.3);color:white;text-align:center;}
-        .login-box h1{margin-bottom:10px;font-size:30px;}.login-box p{margin-bottom:25px;color:#e5e7eb;}
-        .icon{font-size:45px;margin-bottom:10px;}.input-group{margin-bottom:18px;text-align:left;}.input-group label{display:block;margin-bottom:8px;font-size:15px;font-weight:bold;} .input-group input, .input-group select{width:100%;padding:13px;border:none;border-radius:10px;outline:none;font-size:15px;}
-        .login-btn{width:100%;padding:14px;background:#2563eb;color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px;} .login-btn:hover{background:#1d4ed8;}
-        .footer-text{margin-top:18px;font-size:14px;color:#f3f4f6;}
-        .demo-box{margin-top:18px;background:rgba(255,255,255,0.12);padding:12px;border-radius:10px;font-size:14px;color:#f9fafb;text-align:left;}
-        @media (max-width:500px){.login-box{padding:25px 20px;}}
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthGuardian AI - Secure Portal Login</title>
+  
+  <!-- CSS & FontAwesome -->
+  <link rel="stylesheet" href="css/healthguardian-theme.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- JS Modules -->
+  <script src="js/audio-synth.js"></script>
+  <script src="js/three-scene.js"></script>
 </head>
-<body>
-<div class="overlay"><div class="login-box"><div class="icon">🏥</div><h1>Hospital Login</h1><p>AI-Powered Health Monitoring System</p>
-        <div class="input-group"><label for="role">Login Role</label><select id="role"><option value="Doctor">Doctor</option><option value="Admin">Admin</option><option value="Nurse">Nurse</option></select></div>
-        <div class="input-group"><label for="username">Username</label><input type="text" id="username" placeholder="Enter username"></div>
-        <div class="input-group"><label for="password">Password</label><input type="password" id="password" placeholder="Enter password"></div>
-        <button class="login-btn" onclick="login()">Login</button>
-        <div class="demo-box"><strong>Demo Login:</strong><br>Username: admin<br>Password: 1234</div>
-        <div class="footer-text">Secure access for hospital staff</div>
-    </div></div>
-<script>
-    function login(){
-        const role=document.getElementById('role').value;
-        const username=document.getElementById('username').value;
-        const password=document.getElementById('password').value;
-        if(username==='admin' && password==='1234'){ localStorage.setItem('loggedIn','true'); localStorage.setItem('userRole',role); localStorage.setItem('balance', localStorage.getItem('balance')||'1000'); alert(role+' Login Successful'); window.location.href='index.html'; }
-        else alert('Invalid Username or Password');
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-main); overflow: hidden; position: relative;">
+
+  <!-- Canvas Background for Particles -->
+  <canvas id="loginBgCanvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; opacity: 0.5;"></canvas>
+
+  <div class="glass-card" style="width: min(1000px, 92vw); display: grid; grid-template-columns: 1.1fr 0.9fr; padding: 0; overflow: hidden; z-index: 2; border-color: rgba(20, 184, 166, 0.3); box-shadow: 0 25px 80px rgba(0,0,0,0.6);">
+    
+    <!-- Left Panel: Brand & Feature Highlights -->
+    <div style="padding: 50px; background: linear-gradient(135deg, rgba(8, 31, 47, 0.95), rgba(7, 29, 38, 0.85)); display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--border-subtle);">
+      <div>
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 30px;">
+          <div class="brand-icon-box" style="width: 52px; height: 52px; font-size: 1.6rem;">
+            <i class="fa-solid fa-heart-pulse animate-heartbeat"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #FFFFFF;">HealthGuardian <span style="color: var(--primary);">AI</span></div>
+            <div style="font-size: 0.75rem; color: var(--info); letter-spacing: 0.08em; text-transform: uppercase;">AI That Protects Every Heartbeat</div>
+          </div>
+        </div>
+
+        <h2 style="font-size: 2rem; margin-bottom: 16px; line-height: 1.2; background: linear-gradient(135deg, #FFFFFF, var(--info)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          Next-Gen Medical Telemetry & Diagnostics
+        </h2>
+        <p style="font-size: 0.95rem; color: #94A3B8; margin-bottom: 30px;">
+          Access your real-time physiological telemetry, AI risk predictions, and emergency dispatch network through our encrypted HIPAA-compliant portal.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: #CBD5E1;">
+            <i class="fa-solid fa-circle-check" style="color: var(--primary);"></i> 256-Bit Encrypted Biometric Telemetry
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: #CBD5E1;">
+            <i class="fa-solid fa-circle-check" style="color: var(--accent);"></i> Real-Time AI Neural Disease Predictor
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: #CBD5E1;">
+            <i class="fa-solid fa-circle-check" style="color: var(--secondary);"></i> Autonomous 24/7 Emergency SOS Dispatch
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: #64748B;">
+        <span><i class="fa-solid fa-shield-halved"></i> System Status: <span style="color: #22C55E; font-weight: bold;">ALL SYSTEMS OPERATIONAL</span></span>
+      </div>
+    </div>
+
+    <!-- Right Panel: Login Form & Demo Credentials -->
+    <div style="padding: 50px; display: flex; flex-direction: column; justify-content: center; background: rgba(6, 20, 27, 0.75);">
+      <h3 style="font-size: 1.5rem; margin-bottom: 8px;">Portal Authentication</h3>
+      <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 25px;">Select your credential role to sign into the system</p>
+
+      <form onsubmit="handleLogin(event)">
+        <!-- Role Selector Pills -->
+        <div style="display: flex; gap: 8px; margin-bottom: 20px; background: rgba(255,255,255,0.04); padding: 4px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+          <button type="button" class="nav-tab active" id="roleBtnPatient" onclick="setLoginRole('patient')" style="flex: 1; justify-content: center;">
+            <i class="fa-solid fa-user"></i> Patient
+          </button>
+          <button type="button" class="nav-tab" id="roleBtnDoctor" onclick="setLoginRole('doctor')" style="flex: 1; justify-content: center;">
+            <i class="fa-solid fa-user-doctor"></i> Doctor
+          </button>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label class="label-glass">Email Address / ID</label>
+          <input type="email" id="loginEmail" class="input-glass" value="vance.patient@healthguardian.ai" required>
+        </div>
+
+        <div style="margin-bottom: 22px;">
+          <label class="label-glass">Password</label>
+          <input type="password" id="loginPassword" class="input-glass" value="••••••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 1rem; margin-bottom: 20px;">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In to HealthGuardian AI
+        </button>
+      </form>
+
+      <!-- Quick Demo Login Buttons -->
+      <div style="background: rgba(20, 184, 166, 0.08); padding: 14px; border-radius: 12px; border: 1px solid rgba(20, 184, 166, 0.2);">
+        <div style="font-size: 0.78rem; color: var(--info); font-weight: bold; text-transform: uppercase; margin-bottom: 8px;">
+          <i class="fa-solid fa-bolt"></i> Instant Demo Bypass
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-secondary" onclick="demoLogin('patient')" style="flex: 1; padding: 8px; font-size: 0.8rem; justify-content: center;">
+            Demo Patient
+          </button>
+          <button class="btn-secondary" onclick="demoLogin('doctor')" style="flex: 1; padding: 8px; font-size: 0.8rem; justify-content: center;">
+            Demo Doctor
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedRole = 'patient';
+
+    function setLoginRole(role) {
+      selectedRole = role;
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+      if (role === 'patient') {
+        document.getElementById('roleBtnPatient').classList.add('active');
+        document.getElementById('loginEmail').value = 'vance.patient@healthguardian.ai';
+      } else {
+        document.getElementById('roleBtnDoctor').classList.add('active');
+        document.getElementById('loginEmail').value = 'dr.vance@healthguardian.ai';
+      }
     }
-    if(localStorage.getItem('loggedIn')==='true') { window.location.href='index.html'; }
-</script>
+
+    function handleLogin(e) {
+      if (e) e.preventDefault();
+      healthAudio.playSuccessSound();
+      localStorage.setItem('loggedIn', 'true');
+      localStorage.setItem('userRole', selectedRole);
+      setTimeout(() => {
+        window.location.href = `index.html?view=${selectedRole}`;
+      }, 400);
+    }
+
+    function demoLogin(role) {
+      setLoginRole(role);
+      handleLogin(null);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      medicalGraphics.initParticleCanvas('loginBgCanvas');
+    });
+  </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Login</title>
+    <title>CareBridge Premium Login</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,169 +11,445 @@
 
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-image: url("https://images.unsplash.com/photo-1586773860418-d37222d8fce3");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
             min-height: 100vh;
+            font-family: "Segoe UI", "Inter", Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.78), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.5), transparent 18%),
+                linear-gradient(135deg, #081223, #12344f 45%, #153b64 100%);
+            overflow: hidden;
         }
 
-        .overlay {
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.35), transparent 65%);
+            filter: blur(6px);
+            z-index: 0;
+        }
+
+        body::before {
+            top: -120px;
+            left: -120px;
+        }
+
+        body::after {
+            right: -90px;
+            bottom: -110px;
+        }
+
+        .page-shell {
+            position: relative;
+            z-index: 1;
             min-height: 100vh;
-            background: rgba(0, 0, 0, 0.45);
             display: flex;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
+            padding: 24px;
         }
 
-        .login-box {
-            width: 100%;
-            max-width: 420px;
-            background: rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 20px;
-            padding: 35px 30px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            color: white;
-            text-align: center;
+        .login-layout {
+            width: min(1100px, 100%);
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            background: linear-gradient(180deg, rgba(12, 36, 62, 0.45), rgba(10, 22, 38, 0.3));
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 28px;
+            box-shadow: 0 25px 80px rgba(2, 6, 23, 0.45);
+            overflow: hidden;
+            backdrop-filter: blur(26px);
         }
 
-        .login-box h1 {
-            margin-bottom: 10px;
+        .brand-panel {
+            padding: 52px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background:
+                radial-gradient(circle at top left, rgba(45, 212, 191, 0.18), transparent 22%),
+                linear-gradient(180deg, rgba(14, 39, 65, 0.55), rgba(10, 24, 38, 0.2));
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+
+        .brand-logo {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #60a5fa, #2563eb);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
+            font-size: 28px;
+        }
+
+        .brand-title {
             font-size: 30px;
+            font-weight: 700;
+            color: #eff6ff;
+            letter-spacing: -0.04em;
         }
 
-        .login-box p {
-            margin-bottom: 25px;
-            color: #e5e7eb;
+        .brand-subtitle {
+            font-size: 46px;
+            line-height: 1.1;
+            font-weight: 700;
+            color: #f8fbff;
+            margin: 0;
+            letter-spacing: -0.05em;
         }
 
-        .icon {
-            font-size: 45px;
-            margin-bottom: 10px;
+        .brand-copy {
+            margin: 14px 0 26px;
+            max-width: 370px;
+            font-size: 17px;
+            color: #93c5fd;
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.2);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 16px;
+        }
+
+        .feature-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(14, 165, 233, 0.35));
+            font-size: 22px;
+        }
+
+        .feature-text {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+
+        .login-panel {
+            padding: 42px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.32), rgba(15, 23, 42, 0.18));
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .login-card h2 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+            color: #f8fbff;
+            letter-spacing: -0.04em;
+        }
+
+        .login-card p {
+            margin: 10px 0 28px;
+            font-size: 14px;
+            color: #94a3b8;
         }
 
         .input-group {
-            margin-bottom: 18px;
-            text-align: left;
+            margin-bottom: 16px;
         }
 
         .input-group label {
             display: block;
             margin-bottom: 8px;
-            font-size: 15px;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 13px;
+            color: #cbd5e1;
         }
 
-        .input-group input,
-        .input-group select {
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap input,
+        .input-wrap select {
             width: 100%;
-            padding: 13px;
-            border: none;
-            border-radius: 10px;
-            outline: none;
+            padding: 14px 14px;
             font-size: 15px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.35);
+            color: #f8fafc;
+            outline: none;
+        }
+
+        .input-wrap input::placeholder {
+            color: #64748b;
+        }
+
+        .input-wrap select {
+            appearance: none;
+        }
+
+        .input-wrap select:focus,
+        .input-wrap input:focus {
+            border-color: rgba(96, 165, 250, 0.6);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.16);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        .row-links {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 14px 0 20px;
+            font-size: 13px;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #94a3b8;
+        }
+
+        .remember input {
+            width: 16px;
+            height: 16px;
+            accent-color: #38bdf8;
+        }
+
+        .forgot-link {
+            color: #93c5fd;
+            text-decoration: none;
         }
 
         .login-btn {
             width: 100%;
             padding: 14px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 10px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            color: white;
             cursor: pointer;
-            margin-top: 10px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb, #1d4ed8);
+            box-shadow: 0 14px 34px rgba(37, 99, 235, 0.45);
         }
 
         .login-btn:hover {
-            background: #1d4ed8;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8, #1e40af);
         }
 
-        .footer-text {
-            margin-top: 18px;
-            font-size: 14px;
-            color: #f3f4f6;
+        .error-message {
+            min-height: 16px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #fecaca;
         }
 
         .demo-box {
             margin-top: 18px;
-            background: rgba(255,255,255,0.12);
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 14px;
-            color: #f9fafb;
-            text-align: left;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.32);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            color: #cbd5e1;
+            font-size: 13px;
         }
 
-        @media (max-width: 500px) {
-            .login-box {
-                padding: 25px 20px;
+        .demo-box strong {
+            color: #f8fafc;
+        }
+
+        .support-link {
+            margin-top: 18px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            .login-layout {
+                grid-template-columns: 1fr;
+                max-width: 430px;
+            }
+
+            .brand-panel {
+                display: none;
+            }
+
+            .login-panel {
+                padding: 28px 20px;
             }
         }
     </style>
 </head>
 <body>
+    <main class="page-shell">
+        <section class="login-layout" aria-label="Premium hospital login interface">
+            <div class="brand-panel">
+                <div class="brand-header">
+                    <div class="brand-logo" aria-hidden="true">✚</div>
+                    <span class="brand-title">CareBridge</span>
+                </div>
+                <h1 class="brand-subtitle">Secure care access for every shift.</h1>
+                <p class="brand-copy">Monitor patients, manage triage, and coordinate treatment with AI-assisted visibility in one secure workspace.</p>
 
-<div class="overlay">
-    <div class="login-box">
-        <div class="icon">🏥</div>
-        <h1>Hospital Login</h1>
-        <p>AI-Powered Health Monitoring System</p>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon" aria-hidden="true">🩺</div>
+                        <span class="feature-text">24/7 patient monitoring</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon" aria-hidden="true">🔒</div>
+                        <span class="feature-text">HIPAA-ready secure access</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon" aria-hidden="true">📈</div>
+                        <span class="feature-text">Smart clinical analytics</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="input-group">
-            <label for="role">Login Role</label>
-            <select id="role">
-                <option value="Doctor">Doctor</option>
-                <option value="Admin">Admin</option>
-                <option value="Nurse">Nurse</option>
-            </select>
-        </div>
+            <div class="login-panel">
+                <div class="login-card">
+                    <h2>Welcome back</h2>
+                    <p>Sign in to continue to your patient dashboard</p>
 
-        <div class="input-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" placeholder="Enter username">
-        </div>
+                    <div class="input-group">
+                        <label for="role">Access level</label>
+                        <div class="input-wrap">
+                            <select id="role" aria-label="Select user role">
+                                <option value="Doctor">Doctor</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Nurse">Nurse</option>
+                            </select>
+                        </div>
+                    </div>
 
-        <div class="input-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" placeholder="Enter password">
-        </div>
+                    <div class="input-group">
+                        <label for="username">Username</label>
+                        <div class="input-wrap">
+                            <input type="text" id="username" placeholder="Enter username" autocomplete="username">
+                        </div>
+                    </div>
 
-        <button class="login-btn" onclick="login()">Login</button>
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrap">
+                            <input type="password" id="password" placeholder="Enter password" autocomplete="current-password">
+                            <button class="toggle-password" id="togglePassword" type="button" aria-label="Show password">👁️</button>
+                        </div>
+                    </div>
 
-        <div class="demo-box">
-            <strong>Demo Login:</strong><br>
-            Username: admin<br>
-            Password: 1234
-        </div>
+                    <div class="row-links">
+                        <label class="remember" for="rememberMe">
+                            <input type="checkbox" id="rememberMe">
+                            <span>Remember me</span>
+                        </label>
+                        <a class="forgot-link" href="#">Forgot password?</a>
+                    </div>
 
-        <div class="footer-text">
-            Secure access for hospital staff
-        </div>
-    </div>
-</div>
+                    <button class="login-btn" type="button" onclick="login()">Secure Sign In</button>
+                    <div class="error-message" id="errorMessage" aria-live="polite"></div>
 
-<script>
-    function login() {
-        const role = document.getElementById("role").value;
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+                    <div class="demo-box">
+                        <strong>Demo access:</strong><br>
+                        Admin: admin / 1234<br>
+                        Doctor: doctor / doctor123<br>
+                        Nurse: nurse / nurse123
+                    </div>
 
-        if (username === "admin" && password === "1234") {
-            alert(role + " Login Successful");
-            window.location.href = "index.html";
-        } else {
-            alert("Invalid Username or Password");
+                    <div class="support-link">Need help? Contact hospital support</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function login() {
+            const role = document.getElementById('role').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            const validCredentials = {
+                admin: '1234',
+                doctor: 'doctor123',
+                nurse: 'nurse123'
+            };
+
+            if (username.toLowerCase() === 'admin' && password === validCredentials.admin) {
+                localStorage.setItem('loggedIn', 'true');
+                localStorage.setItem('userRole', role);
+                localStorage.setItem('balance', localStorage.getItem('balance') || '1000');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (username.toLowerCase() === 'doctor' && password === validCredentials.doctor) {
+                localStorage.setItem('loggedIn', 'true');
+                localStorage.setItem('userRole', role);
+                localStorage.setItem('balance', localStorage.getItem('balance') || '1000');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (username.toLowerCase() === 'nurse' && password === validCredentials.nurse) {
+                localStorage.setItem('loggedIn', 'true');
+                localStorage.setItem('userRole', role);
+                localStorage.setItem('balance', localStorage.getItem('balance') || '1000');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            errorMessage.textContent = 'Invalid username or password for the selected role.';
+            document.getElementById('password').value = '';
         }
-    }
-</script>
 
+        const passwordInput = document.getElementById('password');
+        const toggleButton = document.getElementById('togglePassword');
+
+        toggleButton.addEventListener('click', () => {
+            const isHidden = passwordInput.type === 'password';
+            passwordInput.type = isHidden ? 'text' : 'password';
+            toggleButton.textContent = isHidden ? '🙈' : '👁️';
+            toggleButton.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        });
+
+        if (localStorage.getItem('loggedIn') === 'true') {
+            window.location.href = 'index.html';
+        }
+    </script>
 </body>
 </html>

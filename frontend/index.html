@@ -1,228 +1,896 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Health Monitoring Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>/* (same styles as old index plus small rewrites) */
-    @keyframes blinkScreen {
-    0% { opacity: 0.2; }
-    50% { opacity: 0.7; }
-    100% { opacity: 0.2; }
-}
-        body { font-family: Arial, sans-serif; margin:0; padding:0; background-image:url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; }
-        .overlay { min-height:100vh; background:rgba(0,0,0,0.35); padding:20px 0; }
-        .container { width:90%; margin:0 auto; }
-        .card { background:rgba(255,255,255,0.22);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:20px;margin:18px 0;border-radius:18px;box-shadow:0 8px 25px rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.25);color:white; }
-        table{width:100%;border-collapse:collapse;margin-top:15px;background:rgba(255,255,255,0.18);overflow:hidden;border-radius:12px;color:white;}table,th,td{border:1px solid rgba(255,255,255,0.2);}th{background:rgba(37,99,235,0.85);color:white;}th,td{padding:12px;text-align:center;}.normal{color:#86efac;font-weight:bold;}.risk{color:#fecaca;font-weight:bold;}
-        .status-box{display:flex;gap:20px;flex-wrap:wrap;}.status-card{flex:1;min-width:200px;background:rgba(255,255,255,0.18);backdrop-filter:blur(10px);padding:15px;border-radius:14px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.2);} button{padding:12px 20px;background:#2563eb;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;}button:hover{background:#1d4ed8;} input{width:23%;padding:12px;margin:5px;border:none;border-radius:10px;outline:none;} .chart-container{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;}.chart-box{width:45%;min-width:300px;background:rgba(255,255,255,0.18);backdrop-filter:blur(10px);padding:20px;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,0.2);}canvas{max-height:300px;background:rgba(255,255,255,0.85);border-radius:12px;padding:10px;}
-        .logout-btn{background:#dc2626;margin-left:10px;}
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthGuardian AI - Real-Time AI Health Monitoring & Emergency Response</title>
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/healthguardian-theme.css">
+  
+  <!-- Chart.js & Font Awesome CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- JS Modules -->
+  <script src="js/audio-synth.js"></script>
+  <script src="js/three-scene.js"></script>
+  <script src="js/ai-engine.js"></script>
 </head>
 <body>
-    <div id="redAlertOverlay" style="
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(255,0,0,0.35);
-    z-index:9998;
-    animation: blinkScreen 0.8s infinite;
-"></div>
 
-<audio id="alarmSound" loop>
-    <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
-</audio>
-<div class="overlay">
-    <div class="container">
-        <h1>AI-Powered Health Monitoring Dashboard</h1>
-        <div class="card">
-            <button onclick="logout()" class="logout-btn">Logout</button>
-            <span id="loggedRole" style="margin-left:20px;font-weight:bold;"></span>
-            <span style="margin-left:20px;font-weight:bold;" id="balance">Balance: ₹0</span>
-        </div>
-
-        <div class="card">
-            <h2>Add Patient Data</h2>
-            <input type="text" id="name" placeholder="Patient Name">
-            <input type="number" id="heartRate" placeholder="Heart Rate">
-            <input type="number" step="0.1" id="temperature" placeholder="Temperature">
-            <input type="number" id="spo2" placeholder="SpO2">
-            <button onclick="addPatient()">Submit</button>
-        </div>
-
-        <div class="card">
-            <h2>Live Status Overview</h2>
-            <div class="status-box">
-                <div class="status-card"><h3>Total Patients</h3><p id="totalPatients">0</p></div>
-                <div class="status-card"><h3>Normal</h3><p id="normalCount">0</p></div>
-                <div class="status-card"><h3>Risk</h3><p id="riskCount">0</p></div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Health Analytics Charts</h2>
-            <div class="chart-container">
-                <div class="chart-box"><canvas id="statusChart"></canvas></div>
-                <div class="chart-box"><canvas id="heartRateChart"></canvas></div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Patient Records</h2>
-            <table><thead><tr><th>ID</th><th>Name</th><th>Heart Rate</th><th>Temperature</th><th>SpO2</th><th>Status</th><th>Doctor</th></tr></thead><tbody id="patientTableBody"></tbody></table>
-        </div>
+  <!-- ============================================================
+       EMERGENCY SOS OVERLAY SCREEN
+       ============================================================ -->
+  <div id="emergencyOverlay">
+    <div style="position: absolute; top: 30px; right: 30px; z-index: 10000;">
+      <button class="btn-secondary" onclick="stopEmergencySOS()">
+        <i class="fa-solid fa-xmark"></i> CANCEL SOS EMERGENCY
+      </button>
     </div>
-</div>
-<script>
-    const apiBase = "http://localhost:8081";
 
-    function showError(message) {
-        alert(message);
-    }
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 20px;">
+      <div style="width: 90px; height: 90px; border-radius: 50%; background: rgba(239, 68, 68, 0.3); border: 2px solid #EF4444; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;" class="animate-heartbeat">
+        <i class="fa-solid fa-truck-medical" style="font-size: 2.5rem; color: #EF4444;"></i>
+      </div>
+      
+      <h1 style="font-size: 3rem; color: #EF4444; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;">
+        <i class="fa-solid fa-triangle-exclamation"></i> EMERGENCY RESPONSE ACTIVATED
+      </h1>
+      <p style="font-size: 1.2rem; color: #FCA5A5; max-width: 650px; margin-bottom: 30px;">
+        HealthGuardian AI telemetry engine detected critical risk vitals. Dispatching emergency response unit and notifying nearest ICU trauma center.
+      </p>
 
-    function logout() {
-        localStorage.removeItem('loggedIn');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('balance');
-        window.location.href = 'login.html';
-    }
+      <div class="grid-3" style="width: 100%; max-width: 950px; gap: 20px;">
+        <!-- Card 1: Ambulance Dispatch Tracker -->
+        <div class="glass-card" style="padding: 24px; border-color: rgba(239, 68, 68, 0.4); text-align: left;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+            <span class="badge badge-danger"><i class="fa-solid fa-satellite-dish"></i> GPS LIVE TRACKING</span>
+            <span style="font-family: monospace; color: #EF4444; font-weight: bold;">DISPATCH ID #HG-9912</span>
+          </div>
+          <h3 style="margin-bottom: 8px;"><i class="fa-solid fa-ambulance" style="color: #EF4444;"></i> Unit Alpha-4 Ambulance</h3>
+          <p style="font-size: 0.9rem; margin-bottom: 15px;">Advanced Life Support (ALS) Unit en route to patient location.</p>
+          <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Estimated Arrival:</span>
+            <span id="emergencyTimer" style="font-size: 1.5rem; font-weight: 800; color: #F87171; font-family: monospace;">03:45 MIN</span>
+          </div>
+        </div>
 
-    function triggerEmergencyEffects() {
-        const overlay = document.getElementById("redAlertOverlay");
-        const sound = document.getElementById("alarmSound");
+        <!-- Card 2: ICU Trauma Center -->
+        <div class="glass-card" style="padding: 24px; border-color: rgba(239, 68, 68, 0.4); text-align: left;">
+          <span class="badge badge-warning" style="margin-bottom: 15px;"><i class="fa-solid fa-hospital"></i> NEAREST HOSPITAL</span>
+          <h3 style="margin-bottom: 8px;">Apollo Critical Care ICU</h3>
+          <p style="font-size: 0.9rem; margin-bottom: 15px;">Distance: 1.8 KM (ETA 4 Mins). Doctor on standby: Dr. E. Vance (Cardiology Specialist).</p>
+          <button class="btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #EF4444, #B91C1C); color: white;" onclick="alert('Connecting direct hotline to Apollo Emergency desk...')">
+            <i class="fa-solid fa-phone"></i> Direct Hotline Call
+          </button>
+        </div>
 
-        overlay.style.display = "block";
-        sound.play().catch(() => {});
+        <!-- Card 3: Vital Telemetry Broadcast -->
+        <div class="glass-card" style="padding: 24px; border-color: rgba(239, 68, 68, 0.4); text-align: left;">
+          <span class="badge badge-ai" style="margin-bottom: 15px;"><i class="fa-solid fa-signal"></i> TELEMETRY BROADCAST</span>
+          <h3 style="margin-bottom: 8px;">Continuous Live Stream</h3>
+          <div style="font-size: 0.85rem; color: #CBD5E1; line-height: 1.8;">
+            <div>• Heart Rate: <span style="color: #EF4444; font-weight: bold;">138 BPM (Tachycardia)</span></div>
+            <div>• SpO2: <span style="color: #F59E0B; font-weight: bold;">91% (Hypoxia Warning)</span></div>
+            <div>• Blood Pressure: <span style="color: #EF4444; font-weight: bold;">165/105 mmHg</span></div>
+          </div>
+          <button class="btn-secondary" style="width: 100%; margin-top: 12px; justify-content: center; font-size: 0.85rem;" onclick="window.print()">
+            <i class="fa-solid fa-file-pdf"></i> Download Dispatch Report PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        setTimeout(() => {
-            overlay.style.display = "none";
-            sound.pause();
-            sound.currentTime = 0;
-        }, 5000);
-    }
+  <!-- ============================================================
+       APPLICATION HEADER & NAVIGATION
+       ============================================================ -->
+  <header class="app-header glass-nav">
+    <a href="#" class="brand-logo" onclick="switchView('landing')">
+      <div class="brand-icon-box">
+        <i class="fa-solid fa-heart-pulse animate-heartbeat"></i>
+      </div>
+      <div>
+        <div class="brand-title">HealthGuardian <span style="color: var(--primary);">AI</span></div>
+        <div style="font-size: 0.68rem; color: var(--info); letter-spacing: 0.08em; text-transform: uppercase;">AI That Protects Every Heartbeat</div>
+      </div>
+    </a>
 
-    async function addPatient() {
-        const name = document.getElementById('name').value.trim();
-        const heartRate = Number(document.getElementById('heartRate').value);
-        const temperature = Number(document.getElementById('temperature').value);
-        const spo2 = Number(document.getElementById('spo2').value);
+    <!-- View Switcher Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" id="tab-landing" onclick="switchView('landing')">
+        <i class="fa-solid fa-globe"></i> Landing
+      </button>
+      <button class="nav-tab" id="tab-patient" onclick="switchView('patient')">
+        <i class="fa-solid fa-user-doctor"></i> Patient
+      </button>
+      <button class="nav-tab" id="tab-ai" onclick="switchView('ai')">
+        <i class="fa-solid fa-brain"></i> AI Diagnostics
+      </button>
+      <button class="nav-tab" id="tab-hospital" onclick="switchView('hospital')">
+        <i class="fa-solid fa-hospital"></i> Hospital
+      </button>
+      <button class="nav-tab" id="tab-ambulance" onclick="switchView('ambulance')">
+        <i class="fa-solid fa-route"></i> Live SOS Map
+      </button>
+      <button class="nav-tab" id="tab-doctor" onclick="switchView('doctor')">
+        <i class="fa-solid fa-stethoscope"></i> Doctor
+      </button>
+      <button class="nav-tab" id="tab-family" onclick="switchView('family')">
+        <i class="fa-solid fa-users"></i> Family
+      </button>
+      <button class="nav-tab" id="tab-admin" onclick="switchView('admin')">
+        <i class="fa-solid fa-shield-halved"></i> Admin
+      </button>
+      <button class="nav-tab" id="tab-analytics" onclick="switchView('analytics')">
+        <i class="fa-solid fa-chart-pie"></i> Analytics
+      </button>
+    </nav>
 
-        if (!name || !heartRate || !temperature || !spo2) {
-            return showError('Please fill in all patient fields before submitting.');
-        }
+    <!-- Header Actions -->
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <!-- IoT Telemetry Live Stream Toggle -->
+      <button class="btn-secondary" id="iotToggleBtn" onclick="toggleIoTStream()" style="padding: 8px 14px; font-size: 0.82rem;">
+        <i class="fa-solid fa-laptop-medical"></i> IoT Stream: <span id="iotStatusText" style="color: #22C55E; font-weight: bold;">SYNCED</span>
+      </button>
 
-        const payload = {
-            name,
-            heartRate,
-            temperature,
-            spo2,
-            doctor: localStorage.getItem('userRole') || 'N/A'
-        };
+      <!-- Audio FX Sound Toggle -->
+      <button class="btn-icon" id="audioToggleBtn" onclick="toggleAudio()" title="Toggle Synthesized Audio FX">
+        <i class="fa-solid fa-volume-high" id="audioIcon"></i>
+      </button>
 
-        try {
-            const res = await fetch(`${apiBase}/add`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+      <!-- Auth Modal Launcher -->
+      <button class="btn-secondary" onclick="openAuthModal()" style="padding: 8px 16px;">
+        <i class="fa-solid fa-lock"></i> Portal Login
+      </button>
 
-            if (!res.ok) {
-                throw new Error('Unable to save patient');
-            }
+      <!-- Emergency SOS Trigger Button -->
+      <button class="btn-emergency" onclick="triggerEmergencySOS()">
+        <i class="fa-solid fa-truck-medical"></i> SOS EMERGENCY
+      </button>
+    </div>
+  </header>
 
-            document.getElementById('name').value = '';
-            document.getElementById('heartRate').value = '';
-            document.getElementById('temperature').value = '';
-            document.getElementById('spo2').value = '';
+  <!-- ============================================================
+       MAIN CONTENT CONTAINER
+       ============================================================ -->
+  <main style="padding: 24px 30px; max-width: 1600px; margin: 0 auto; min-height: calc(100vh - 80px);">
 
-            await loadPatients();
-        } catch (error) {
-            console.error(error);
-            showError('Unable to save patient. Make sure the backend is running and available on port 8081.');
-        }
-    }
+    <!-- ============================================================
+         VIEW 1: LANDING PAGE
+         ============================================================ -->
+    <section id="view-landing" class="view-section">
+      <!-- Hero Section -->
+      <div style="position: relative; border-radius: 24px; padding: 60px 40px; overflow: hidden; background: linear-gradient(135deg, rgba(8,31,47,0.9) 0%, rgba(6,20,27,0.95) 100%); border: 1px solid var(--border-subtle); margin-bottom: 40px;">
+        <canvas id="heroParticleCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.6;"></canvas>
 
-    async function loadPatients() {
-        try {
-            const res = await fetch(`${apiBase}/patients`);
-            if (!res.ok) {
-                throw new Error(`Backend returned ${res.status}`);
-            }
-
-            const data = await res.json();
-            const total = data.length;
-            const risk = data.filter(p => p.status === 'Risk').length;
-            const normal = total - risk;
-
-            document.getElementById('totalPatients').innerText = total;
-            document.getElementById('riskCount').innerText = risk;
-            document.getElementById('normalCount').innerText = normal;
-
-            const tableBody = document.getElementById('patientTableBody');
-            tableBody.innerHTML = '';
-            data.forEach(p => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${p.id ?? ''}</td>
-                    <td>${p.name ?? ''}</td>
-                    <td>${p.heartRate ?? ''}</td>
-                    <td>${p.temperature ?? ''}</td>
-                    <td>${p.spo2 ?? ''}</td>
-                    <td>${p.status ?? ''}</td>
-                    <td>${p.doctor ?? 'N/A'}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-
-            if (risk > 0) {
-                showEmergencyAlert(risk);
-            }
-        } catch (error) {
-            console.error(error);
-            showError('Unable to load patients from backend. Please start the backend server on port 8081.');
-        }
-    }
-
-    function showEmergencyAlert(count) {
-        const alertBox = document.createElement('div');
-        alertBox.innerHTML = `
-            <div style="
-                position:fixed;
-                top:20px;
-                right:20px;
-                background:red;
-                color:white;
-                padding:20px;
-                border-radius:10px;
-                font-weight:bold;
-                z-index:9999;
-                box-shadow:0 0 20px red;
-            ">
-                🚨 EMERGENCY ALERT 🚨 <br>
-                ${count} Risk Patient(s) detected!
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; align-items: center; position: relative; z-index: 2;">
+          <div>
+            <span class="badge badge-ai" style="padding: 8px 16px; font-size: 0.82rem; margin-bottom: 20px;">
+              <i class="fa-solid fa-sparkles"></i> NEXT-GENERATION ENTERPRISE HEALTHCARE PLATFORM
+            </span>
+            <h1 style="font-size: 3.5rem; line-height: 1.15; margin-bottom: 20px; font-weight: 800; background: linear-gradient(135deg, #FFFFFF 0%, #67E8F9 50%, #10B981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+              Real-Time AI Health Monitoring<br>For Saving Lives
+            </h1>
+            <p style="font-size: 1.15rem; color: #94A3B8; margin-bottom: 35px; max-width: 620px;">
+              Continuous physiological telemetry, neural disease diagnostic algorithms, autonomous emergency SOS dispatch, and real-time hospital bed tracking.
+            </p>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+              <button class="btn-primary" onclick="switchView('patient')" style="font-size: 1.05rem; padding: 14px 28px;">
+                <i class="fa-solid fa-chart-line"></i> Launch Patient Dashboard
+              </button>
+              <button class="btn-secondary" onclick="switchView('ai')" style="font-size: 1.05rem; padding: 14px 28px;">
+                <i class="fa-solid fa-brain"></i> Explore AI Diagnostics
+              </button>
             </div>
-        `;
+          </div>
 
-        document.body.appendChild(alertBox);
-        setTimeout(() => alertBox.remove(), 5000);
+          <!-- 3D DNA Canvas Widget -->
+          <div class="glass-card" style="padding: 30px; text-align: center; border-color: rgba(20, 184, 166, 0.3);">
+            <div style="font-size: 0.85rem; color: var(--info); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;">
+              <i class="fa-solid fa-dna"></i> 3D Biometric DNA Mesh
+            </div>
+            <div style="width: 100%; height: 280px; position: relative;">
+              <canvas id="dnaCanvas"></canvas>
+            </div>
+            <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 10px;">
+              Real-Time Genome & Biometric Sync: <span style="color: #22C55E; font-weight: bold;">ACTIVE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Platform Stats Ticker -->
+      <div class="grid-4" style="margin-bottom: 50px;">
+        <div class="glass-card" style="padding: 24px; text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary);" id="statPatients">148,290+</div>
+          <div style="font-size: 0.85rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Patients Protected</div>
+        </div>
+        <div class="glass-card" style="padding: 24px; text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 800; color: var(--info);" id="statAccuracy">99.4%</div>
+          <div style="font-size: 0.85rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">AI Predictions Accuracy</div>
+        </div>
+        <div class="glass-card" style="padding: 24px; text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 800; color: var(--secondary);" id="statHospitals">1,450+</div>
+          <div style="font-size: 0.85rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Hospitals Connected</div>
+        </div>
+        <div class="glass-card" style="padding: 24px; text-align: center;">
+          <div style="font-size: 2.5rem; font-weight: 800; color: #F59E0B;" id="statResponse">2.8 MIN</div>
+          <div style="font-size: 0.85rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Emergency Response Time</div>
+        </div>
+      </div>
+
+      <!-- Feature Grid -->
+      <h2 style="font-size: 2rem; margin-bottom: 25px; text-align: center;">Enterprise Medical Intelligence Features</h2>
+      <div class="grid-3" style="margin-bottom: 50px;">
+        <div class="glass-card" style="padding: 30px;">
+          <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(16, 185, 129, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 20px;">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <h3 style="margin-bottom: 12px;">Continuous Vital Telemetry</h3>
+          <p>Instant streaming of ECG waveforms, blood oxygen, systemic arterial pressure, and core temperature with millisecond precision.</p>
+        </div>
+
+        <div class="glass-card" style="padding: 30px;">
+          <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(6, 182, 212, 0.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 20px;">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <h3 style="margin-bottom: 12px;">AI Disease Neural Predictor</h3>
+          <p>Multi-layered deep learning neural networks evaluating early markers for stroke, arrhythmia, hypoxia, and 16 medical conditions.</p>
+        </div>
+
+        <div class="glass-card" style="padding: 30px;">
+          <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(239, 68, 68, 0.15); color: #EF4444; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 20px;">
+            <i class="fa-solid fa-truck-medical"></i>
+          </div>
+          <h3 style="margin-bottom: 12px;">Autonomous Emergency SOS</h3>
+          <p>Instant automated dispatch trigger connecting critical patients directly with nearest ICU trauma units and ALS ambulances.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         VIEW 2: PATIENT DASHBOARD
+         ============================================================ -->
+    <section id="view-patient" class="view-section" style="display: none;">
+      <!-- Patient Header Banner -->
+      <div class="glass-card" style="padding: 24px 30px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--grad-primary); display: flex; align-items: center; justify-content: center; color: #041117; font-size: 1.8rem; font-weight: bold;">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div>
+            <h2 style="font-size: 1.6rem; margin-bottom: 4px;">Welcome back, Alexander Vance</h2>
+            <div style="font-size: 0.9rem; color: #94A3B8;">Patient ID: #HG-88412 • Age: 42 • Blood Group: O Positive • Status: <span class="badge badge-success">STABLE</span></div>
+          </div>
+        </div>
+
+        <!-- Radial Health Score Gauge -->
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div class="radial-ring-container">
+            <svg class="radial-ring-svg" viewBox="0 0 140 140">
+              <defs>
+                <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#10B981" />
+                  <stop offset="100%" stop-color="#06B6D4" />
+                </linearGradient>
+              </defs>
+              <circle class="radial-ring-bg" cx="70" cy="70" r="60"></circle>
+              <circle class="radial-ring-progress" id="healthScoreRing" cx="70" cy="70" r="60"></circle>
+            </svg>
+            <div class="radial-ring-text">
+              <div class="radial-score" id="healthScoreText">94</div>
+              <div class="radial-label">Health Index</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vitals Grid (8 Cards) -->
+      <h3 style="font-size: 1.2rem; color: var(--info); margin-bottom: 18px; text-transform: uppercase; letter-spacing: 0.05em;">
+        <i class="fa-solid fa-heart-pulse"></i> Real-Time Physiological Telemetry
+      </h3>
+      <div class="grid-4" style="margin-bottom: 30px;">
+        <div class="glass-card vital-card">
+          <div class="vital-header">
+            <span class="vital-title">Heart Rate</span>
+            <div class="vital-icon" onclick="healthAudio.playHeartbeat()" style="cursor: pointer;" title="Listen to Heartbeat sound">
+              <i class="fa-solid fa-heart animate-heartbeat" style="color: #EF4444;"></i>
+            </div>
+          </div>
+          <div class="vital-value-group">
+            <span class="vital-value" id="valHeartRate">76</span>
+            <span class="vital-unit">BPM</span>
+          </div>
+          <div style="margin-top: 10px; font-size: 0.8rem; color: #22C55E;">Normal Sinus Rhythm</div>
+        </div>
+
+        <div class="glass-card vital-card" style="border-left-color: var(--accent);">
+          <div class="vital-header">
+            <span class="vital-title">Blood Pressure</span>
+            <div class="vital-icon" style="color: var(--accent);"><i class="fa-solid fa-gauge-high"></i></div>
+          </div>
+          <div class="vital-value-group">
+            <span class="vital-value" id="valBP">120/80</span>
+            <span class="vital-unit">mmHg</span>
+          </div>
+          <div style="margin-top: 10px; font-size: 0.8rem; color: #22C55E;">Optimal Normotensive</div>
+        </div>
+
+        <div class="glass-card vital-card" style="border-left-color: var(--info);">
+          <div class="vital-header">
+            <span class="vital-title">Blood Oxygen (SpO2)</span>
+            <div class="vital-icon" style="color: var(--info);"><i class="fa-solid fa-lungs"></i></div>
+          </div>
+          <div class="vital-value-group">
+            <span class="vital-value" id="valSpO2">98</span>
+            <span class="vital-unit">%</span>
+          </div>
+          <div style="margin-top: 10px; font-size: 0.8rem; color: #22C55E;">Fully Oxygenated</div>
+        </div>
+
+        <div class="glass-card vital-card" style="border-left-color: var(--warning);">
+          <div class="vital-header">
+            <span class="vital-title">Core Temperature</span>
+            <div class="vital-icon" style="color: var(--warning);"><i class="fa-solid fa-temperature-half"></i></div>
+          </div>
+          <div class="vital-value-group">
+            <span class="vital-value" id="valTemp">36.6</span>
+            <span class="vital-unit">°C</span>
+          </div>
+          <div style="margin-top: 10px; font-size: 0.8rem; color: #22C55E;">Afebrile Status</div>
+        </div>
+      </div>
+
+      <!-- Live ECG Monitor Canvas & Trend Chart -->
+      <div class="grid-2" style="margin-bottom: 30px;">
+        <div class="glass-card" style="padding: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3><i class="fa-solid fa-wave-square" style="color: var(--primary);"></i> Live ECG Telemetry Stream</h3>
+            <span class="badge badge-success"><i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> LIVE STREAMING</span>
+          </div>
+          <div style="width: 100%; height: 200px; background: #071D26; border-radius: 12px; overflow: hidden;">
+            <canvas id="ecgCanvas"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3><i class="fa-solid fa-chart-line" style="color: var(--accent);"></i> 24-Hour Heart Rate & SpO2 Trend</h3>
+          </div>
+          <div style="width: 100%; height: 200px;">
+            <canvas id="patientTrendChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         VIEW 3: AI NEURAL DIAGNOSTIC LAB
+         ============================================================ -->
+    <section id="view-ai" class="view-section" style="display: none;">
+      <div class="grid-2" style="margin-bottom: 30px;">
+        <div class="glass-card" style="padding: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3><i class="fa-solid fa-brain" style="color: var(--info);"></i> AI Neural Node Mesh Visualizer</h3>
+            <span class="badge badge-ai"><i class="fa-solid fa-microchip"></i> DEEP NEURAL NET v4.2</span>
+          </div>
+          <div style="width: 100%; height: 320px; background: rgba(7, 29, 38, 0.8); border-radius: 12px; overflow: hidden;">
+            <canvas id="neuralCanvas"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding: 24px;">
+          <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> AI Disease Probability Calculator (16 Conditions)</h3>
+          
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem;">
+                <span>Cardiovascular / Arrhythmia Risk</span>
+                <span id="riskCVVal" style="font-weight: 700; color: #10B981;">12%</span>
+              </div>
+              <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden;">
+                <div id="riskCVBar" style="width: 12%; height: 100%; background: var(--grad-primary); transition: width 0.6s ease;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem;">
+                <span>Type-2 Diabetes Metabolic Risk</span>
+                <span id="riskDiaVal" style="font-weight: 700; color: #14B8A6;">10%</span>
+              </div>
+              <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden;">
+                <div id="riskDiaBar" style="width: 10%; height: 100%; background: var(--grad-secondary); transition: width 0.6s ease;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem;">
+                <span>Respiratory / Hypoxia Risk</span>
+                <span id="riskRespVal" style="font-weight: 700; color: #06B6D4;">8%</span>
+              </div>
+              <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden;">
+                <div id="riskRespBar" style="width: 8%; height: 100%; background: var(--grad-accent); transition: width 0.6s ease;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem;">
+                <span>Cerebrovascular Stroke Risk</span>
+                <span id="riskStrokeVal" style="font-weight: 700; color: #F59E0B;">7%</span>
+              </div>
+              <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden;">
+                <div id="riskStrokeBar" style="width: 7%; height: 100%; background: linear-gradient(90deg, #F59E0B, #EF4444); transition: width 0.6s ease;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Symptom Sliders -->
+      <div class="glass-card" style="padding: 24px;">
+        <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-sliders" style="color: var(--accent);"></i> Real-Time Symptom & Vital Risk Simulator</h3>
+        <div class="grid-4" style="gap: 24px;">
+          <div>
+            <label class="label-glass">Heart Rate: <span id="simHRText" style="color: #FFFFFF; font-weight: bold;">76 BPM</span></label>
+            <input type="range" id="simHR" min="40" max="180" value="76" oninput="runAISimulation()" style="width: 100%; accent-color: var(--primary);">
+          </div>
+          <div>
+            <label class="label-glass">Systolic BP: <span id="simBPText" style="color: #FFFFFF; font-weight: bold;">120 mmHg</span></label>
+            <input type="range" id="simBP" min="90" max="210" value="120" oninput="runAISimulation()" style="width: 100%; accent-color: var(--accent);">
+          </div>
+          <div>
+            <label class="label-glass">SpO2 Oxygen: <span id="simSpO2Text" style="color: #FFFFFF; font-weight: bold;">98 %</span></label>
+            <input type="range" id="simSpO2" min="70" max="100" value="98" oninput="runAISimulation()" style="width: 100%; accent-color: var(--info);">
+          </div>
+          <div>
+            <label class="label-glass">Blood Sugar: <span id="simSugarText" style="color: #FFFFFF; font-weight: bold;">105 mg/dL</span></label>
+            <input type="range" id="simSugar" min="70" max="300" value="105" oninput="runAISimulation()" style="width: 100%; accent-color: var(--secondary);">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         VIEW 4: HOSPITAL MODULE DASHBOARD
+         ============================================================ -->
+    <section id="view-hospital" class="view-section" style="display: none;">
+      <h2 style="font-size: 1.8rem; margin-bottom: 20px;"><i class="fa-solid fa-hospital" style="color: var(--primary);"></i> Apollo Critical Care Hospital Management</h2>
+      <div class="grid-4" style="margin-bottom: 25px;">
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8;">ICU Trauma Beds</div>
+          <div style="font-size: 2.2rem; font-weight: 800; color: #22C55E;">12 / 15 Available</div>
+        </div>
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8;">Emergency Beds</div>
+          <div style="font-size: 2.2rem; font-weight: 800; color: var(--info);">28 / 30 Available</div>
+        </div>
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8;">Operation Theatres (OT)</div>
+          <div style="font-size: 2.2rem; font-weight: 800; color: #F59E0B;">3 Active / 5 Total</div>
+        </div>
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8;">Blood Bank Units</div>
+          <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary);">450 Units</div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding: 24px;">
+        <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-truck-medical" style="color: #EF4444;"></i> Incoming Emergency Requests Queue</h3>
+        <table class="table-glass">
+          <thead>
+            <tr>
+              <th>Emergency ID</th>
+              <th>Patient Name</th>
+              <th>Triage Severity</th>
+              <th>Vitals Alert</th>
+              <th>ETA</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#SOS-9912</td>
+              <td style="font-weight: 700;">Alexander Vance</td>
+              <td><span class="badge badge-danger">CRITICAL ICU</span></td>
+              <td>HR: 138 BPM, BP: 165/105</td>
+              <td>03:45 MIN</td>
+              <td>
+                <button class="btn-primary" style="padding: 6px 14px; font-size: 0.8rem;" onclick="alert('Accepted Emergency Request #SOS-9912. ICU Bed #4 Reserved.')">
+                  <i class="fa-solid fa-check"></i> Accept & Reserve Bed
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         VIEW 5: AMBULANCE LIVE TRACKING & MAP
+         ============================================================ -->
+    <section id="view-ambulance" class="view-section" style="display: none;">
+      <div class="glass-card" style="padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3><i class="fa-solid fa-map-location-dot" style="color: var(--accent);"></i> Real-Time Ambulance GPS Tracking & Traffic Route</h3>
+          <span class="badge badge-danger"><i class="fa-solid fa-satellite"></i> LIVE GPS SYNC</span>
+        </div>
+        <div style="width: 100%; height: 420px; border-radius: 14px; overflow: hidden; background: #06141B;">
+          <canvas id="emergencyMapCanvas"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         VIEW 6: DOCTOR COMMAND CENTER
+         ============================================================ -->
+    <section id="view-doctor" class="view-section" style="display: none;">
+      <div class="grid-4" style="margin-bottom: 25px;">
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8; text-transform: uppercase;">Total Active Patients</div>
+          <div style="font-size: 2rem; font-weight: 800; color: #FFFFFF;" id="docTotalCount">4</div>
+        </div>
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8; text-transform: uppercase;">Stable Normal</div>
+          <div style="font-size: 2rem; font-weight: 800; color: #22C55E;" id="docNormalCount">3</div>
+        </div>
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8; text-transform: uppercase;">Critical / Risk</div>
+          <div style="font-size: 2rem; font-weight: 800; color: #EF4444;" id="docRiskCount">1</div>
+        </div>
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8; text-transform: uppercase;">Consultations Today</div>
+          <div style="font-size: 2rem; font-weight: 800; color: var(--info);">8 Appointments</div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3><i class="fa-solid fa-list-check" style="color: var(--info);"></i> Clinical Patient Roster & Triage Table</h3>
+          <input type="text" id="tableSearch" onkeyup="filterPatientTable()" class="input-glass" placeholder="Filter patient records..." style="width: 250px;">
+        </div>
+        <table class="table-glass" id="patientTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Patient Name</th>
+              <th>Heart Rate</th>
+              <th>Temperature</th>
+              <th>SpO2</th>
+              <th>BP</th>
+              <th>AI Status</th>
+              <th>Assigned Doctor</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="patientTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         VIEW 7: FAMILY DASHBOARD
+         ============================================================ -->
+    <section id="view-family" class="view-section" style="display: none;">
+      <h2 style="font-size: 1.8rem; margin-bottom: 20px;"><i class="fa-solid fa-users" style="color: var(--secondary);"></i> Family Loved Ones Live Status</h2>
+      <div class="grid-2">
+        <div class="glass-card" style="padding: 24px; border-left: 4px solid var(--primary);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 1.3rem;">Alexander Vance (Father)</h3>
+            <span class="badge badge-success">STABLE - 94 HEALTH SCORE</span>
+          </div>
+          <div style="font-size: 0.9rem; color: #94A3B8; line-height: 1.8;">
+            <div>• Current Location: <span style="color: #FFF;">Home Geofence Zone</span></div>
+            <div>• Last Vitals Sync: <span style="color: #FFF;">2 Mins ago (Apple Watch Series 9)</span></div>
+            <div>• Next Medication: <span style="color: var(--info);">Atorvastatin 20mg at 09:00 PM</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         VIEW 8: ADMIN DASHBOARD
+         ============================================================ -->
+    <section id="view-admin" class="view-section" style="display: none;">
+      <h2 style="font-size: 1.8rem; margin-bottom: 20px;"><i class="fa-solid fa-shield-halved" style="color: var(--info);"></i> System Admin Telemetry & Control Panel</h2>
+      <div class="grid-4" style="margin-bottom: 25px;">
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8;">Registered Users</div>
+          <div style="font-size: 2rem; font-weight: 800;">148,290</div>
+        </div>
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8;">Onboarded Hospitals</div>
+          <div style="font-size: 2rem; font-weight: 800; color: var(--secondary);">1,450</div>
+        </div>
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8;">Active Ambulances</div>
+          <div style="font-size: 2rem; font-weight: 800; color: var(--accent);">3,820</div>
+        </div>
+        <div class="glass-card" style="padding: 20px;">
+          <div style="font-size: 0.85rem; color: #94A3B8;">AI Model Confidence</div>
+          <div style="font-size: 2rem; font-weight: 800; color: #22C55E;">99.4%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         VIEW 9: ANALYTICS DASHBOARD
+         ============================================================ -->
+    <section id="view-analytics" class="view-section" style="display: none;">
+      <h2 style="font-size: 1.8rem; margin-bottom: 20px;"><i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> Platform Intelligence & Disease Analytics</h2>
+      <div class="grid-2">
+        <div class="glass-card" style="padding: 24px;">
+          <h3>Disease Incidence Breakdown</h3>
+          <div style="width: 100%; height: 260px; margin-top: 15px;">
+            <canvas id="diseasePieChart"></canvas>
+          </div>
+        </div>
+        <div class="glass-card" style="padding: 24px;">
+          <h3>Average Response Time Metrics</h3>
+          <div style="width: 100%; height: 260px; margin-top: 15px;">
+            <canvas id="responseBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================
+       FLOATING AI CHATBOT & VOICE ASSISTANT DRAWER
+       ============================================================ -->
+  <div class="chatbot-widget">
+    <button class="chatbot-trigger" onclick="toggleChatDrawer()" title="Open AI Healthcare Assistant">
+      <i class="fa-solid fa-robot"></i>
+    </button>
+  </div>
+
+  <div class="chatbot-drawer" id="chatDrawer">
+    <div class="chat-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-brain" style="color: var(--primary);"></i>
+        <div style="font-weight: 700;">HealthGuardian Assistant</div>
+      </div>
+      <button style="background: none; border: none; color: #94A3B8; cursor: pointer;" onclick="toggleChatDrawer()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="chat-body" id="chatBody">
+      <div class="chat-bubble chat-bubble-bot">
+        Hello Alexander! I am your AI Health Assistant. How can I help you today? You can ask me about symptoms, medicines, or speak "Call ambulance".
+      </div>
+    </div>
+
+    <div class="chat-footer">
+      <input type="text" id="chatInput" class="input-glass" placeholder="Ask AI health assistant..." onkeypress="handleChatKeyPress(event)">
+      <button class="btn-icon" onclick="startVoiceRecognition()" title="Voice Command Speech Recognition">
+        <i class="fa-solid fa-microphone" id="micIcon" style="color: var(--primary);"></i>
+      </button>
+      <button class="btn-primary" onclick="sendChatMessage()" style="padding: 10px 14px;">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       AUTHENTICATION MODAL
+       ============================================================ -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+      <h2 style="font-size: 1.6rem; margin-bottom: 8px;">HealthGuardian Portal Access</h2>
+      <p style="font-size: 0.88rem; color: #94A3B8; margin-bottom: 20px;">Role-Based Enterprise Authentication System</p>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 20px;" class="nav-tabs">
+        <button class="nav-tab active" onclick="setAuthRole('patient', this)">Patient</button>
+        <button class="nav-tab" onclick="setAuthRole('doctor', this)">Doctor</button>
+        <button class="nav-tab" onclick="setAuthRole('hospital', this)">Hospital</button>
+        <button class="nav-tab" onclick="setAuthRole('admin', this)">Admin</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label class="label-glass">Email Address / ID</label>
+          <input type="email" class="input-glass" placeholder="alexander.vance@healthguardian.ai">
+        </div>
+        <div>
+          <label class="label-glass">Password</label>
+          <input type="password" class="input-glass" placeholder="••••••••••••">
+        </div>
+        <button class="btn-primary" style="justify-content: center; width: 100%; margin-top: 10px;" onclick="simulateLogin()">
+          <i class="fa-solid fa-right-to-bracket"></i> Secure SSO Login
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       APPLICATION SCRIPT
+       ============================================================ -->
+  <script>
+    let patientData = [
+      { id: 101, name: "Alexander Vance", heartRate: 76, temp: 36.6, spo2: 98, bp: "120/80", status: "Normal", doctor: "Dr. Vance" },
+      { id: 102, name: "Eleanor Rigby", heartRate: 115, temp: 38.8, spo2: 91, bp: "155/98", status: "Risk", doctor: "Dr. Vance" },
+      { id: 103, name: "Marcus Brody", heartRate: 68, temp: 36.5, spo2: 99, bp: "118/75", status: "Normal", doctor: "Dr. Sarah" },
+      { id: 104, name: "Sophia Martinez", heartRate: 72, temp: 36.7, spo2: 97, bp: "122/82", status: "Normal", doctor: "Dr. Sarah" }
+    ];
+
+    let currentView = 'landing';
+    let iotActive = true;
+    let trendChart = null, pieChart = null;
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(sec => sec.style.display = 'none');
+      document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+
+      const targetSec = document.getElementById(`view-${viewId}`);
+      const targetTab = document.getElementById(`tab-${viewId}`);
+
+      if (targetSec) targetSec.style.display = 'block';
+      if (targetTab) targetTab.classList.add('active');
+
+      currentView = viewId;
+
+      if (viewId === 'patient') {
+        initPatientTrendChart();
+        medicalGraphics.initECGCanvas('ecgCanvas', 76);
+      } else if (viewId === 'ai') {
+        aiEngine.initNeuralCanvas('neuralCanvas');
+      } else if (viewId === 'ambulance') {
+        medicalGraphics.initEmergencyMapCanvas('emergencyMapCanvas');
+      } else if (viewId === 'analytics') {
+        initAnalyticsCharts();
+      }
+    }
+
+    function toggleAudio() {
+      const isMuted = healthAudio.toggleMute();
+      const icon = document.getElementById('audioIcon');
+      icon.className = isMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+      icon.style.color = isMuted ? '#EF4444' : '#10B981';
+    }
+
+    function toggleIoTStream() {
+      iotActive = !iotActive;
+      document.getElementById('iotStatusText').innerText = iotActive ? 'SYNCED' : 'PAUSED';
+      document.getElementById('iotStatusText').style.color = iotActive ? '#22C55E' : '#F59E0B';
+    }
+
+    function triggerEmergencySOS() {
+      document.getElementById('emergencyOverlay').style.display = 'block';
+      healthAudio.startEmergencyLoop();
+      healthAudio.speakText('Emergency response sequence activated. Ambulance unit Alpha-4 en route.');
+    }
+
+    function stopEmergencySOS() {
+      document.getElementById('emergencyOverlay').style.display = 'none';
+      healthAudio.stopEmergencyLoop();
+    }
+
+    function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
+    function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+
+    function simulateLogin() {
+      closeAuthModal();
+      healthAudio.playSuccessSound();
+      switchView('patient');
+    }
+
+    function toggleChatDrawer() {
+      const drawer = document.getElementById('chatDrawer');
+      drawer.style.display = drawer.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const body = document.getElementById('chatBody');
+      body.innerHTML += `<div class="chat-bubble chat-bubble-user">${text}</div>`;
+      input.value = '';
+
+      setTimeout(() => {
+        let reply = "Based on your vitals stream, your heart rate (76 BPM) and blood oxygen (98%) are optimal.";
+        if (text.toLowerCase().includes('chest pain') || text.toLowerCase().includes('help')) {
+          reply = "CRITICAL: I have dispatched Emergency SOS. Unit Alpha-4 Ambulance is en route!";
+          triggerEmergencySOS();
+        }
+        body.innerHTML += `<div class="chat-bubble chat-bubble-bot">${reply}</div>`;
+        body.scrollTop = body.scrollHeight;
+        healthAudio.speakText(reply);
+      }, 600);
+    }
+
+    function handleChatKeyPress(e) { if (e.key === 'Enter') sendChatMessage(); }
+
+    function startVoiceRecognition() {
+      if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        alert('Voice speech recognition API is available in modern browsers.');
+        return;
+      }
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.start();
+      recognition.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        document.getElementById('chatInput').value = transcript;
+        sendChatMessage();
+      };
+    }
+
+    function renderPatientTable() {
+      const tbody = document.getElementById('patientTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      patientData.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>#HG-${p.id}</td>
+          <td style="font-weight: 700;">${p.name}</td>
+          <td>${p.heartRate} BPM</td>
+          <td>${p.temp} °C</td>
+          <td>${p.spo2}%</td>
+          <td>${p.bp}</td>
+          <td><span class="badge ${p.status === 'Normal' ? 'badge-success' : 'badge-danger'}">${p.status}</span></td>
+          <td>${p.doctor}</td>
+          <td><button class="btn-icon" onclick="alert('Viewing file for ${p.name}')"><i class="fa-solid fa-folder-open"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function runAISimulation() {
+      const hr = parseInt(document.getElementById('simHR').value);
+      const bp = parseInt(document.getElementById('simBP').value);
+      const spo2 = parseInt(document.getElementById('simSpO2').value);
+      const sugar = parseInt(document.getElementById('simSugar').value);
+
+      document.getElementById('simHRText').innerText = `${hr} BPM`;
+      document.getElementById('simBPText').innerText = `${bp} mmHg`;
+      document.getElementById('simSpO2Text').innerText = `${spo2} %`;
+      document.getElementById('simSugarText').innerText = `${sugar} mg/dL`;
+
+      const results = aiEngine.calculateRiskMatrix({ heartRate: hr, sysBP: bp, spo2: spo2, sugar: sugar });
+      document.getElementById('riskCVVal').innerText = `${results.cardiovascular}%`;
+      document.getElementById('riskCVBar').style.width = `${results.cardiovascular}%`;
+    }
+
+    function initPatientTrendChart() {
+      const ctx = document.getElementById('patientTrendChart');
+      if (!ctx) return;
+      if (trendChart) trendChart.destroy();
+      trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', 'Now'],
+          datasets: [{ label: 'Heart Rate', data: [72, 68, 74, 82, 78, 75, 76], borderColor: '#10B981' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function initAnalyticsCharts() {
+      const pieCtx = document.getElementById('diseasePieChart');
+      if (pieCtx && !pieChart) {
+        pieChart = new Chart(pieCtx, {
+          type: 'pie',
+          data: {
+            labels: ['Cardiovascular', 'Diabetes', 'Respiratory', 'Stroke', 'Normal'],
+            datasets: [{ data: [35, 20, 15, 10, 20], backgroundColor: ['#EF4444', '#14B8A6', '#06B6D4', '#F59E0B', '#10B981'] }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        if (localStorage.getItem('loggedIn') !== 'true') {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        document.getElementById('loggedRole').innerText = 'Role: ' + (localStorage.getItem('userRole') || 'Guest');
-        document.getElementById('balance').innerText = 'Balance: ₹' + (localStorage.getItem('balance') || '0');
-
-        loadPatients();
-        setInterval(loadPatients, 5000);
+      medicalGraphics.initParticleCanvas('heroParticleCanvas');
+      medicalGraphics.initDNA3DCanvas('dnaCanvas');
+      renderPatientTable();
     });
-</script>
+  </script>
 </body>
 </html>
